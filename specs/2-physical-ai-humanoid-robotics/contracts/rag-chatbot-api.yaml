@@ -1,0 +1,180 @@
+# RAG Chatbot API Contract
+
+## Overview
+This API contract defines the endpoints for the Retrieval-Augmented Generation (RAG) chatbot that will answer questions based on textbook content.
+
+## Base URL
+`/api/rag-chatbot`
+
+## Endpoints
+
+### POST /api/rag-chatbot/chat
+Initiates or continues a chat conversation with the RAG bot
+
+#### Request
+```json
+{
+  "sessionId": "string",
+  "userId": "string (optional)",
+  "message": "string",
+  "selectedText": "string (optional)",
+  "context": {
+    "chapterId": "string",
+    "topicId": "string"
+  }
+}
+```
+
+#### Response
+```json
+{
+  "sessionId": "string",
+  "response": "string",
+  "sources": [
+    {
+      "contentId": "string",
+      "text": "string",
+      "relevanceScore": "number"
+    }
+  ],
+  "timestamp": "ISO 8601 datetime"
+}
+```
+
+#### Error Responses
+- `400`: Bad request (invalid input)
+- `500`: Internal server error
+
+### POST /api/rag-chatbot/new-session
+Creates a new chat session
+
+#### Request
+```json
+{
+  "userId": "string (optional)"
+}
+```
+
+#### Response
+```json
+{
+  "sessionId": "string",
+  "createdAt": "ISO 8601 datetime"
+}
+```
+
+#### Error Responses
+- `500`: Internal server error
+
+### GET /api/rag-chatbot/session/{sessionId}
+Retrieves conversation history for a session
+
+#### Path Parameters
+- `sessionId`: The unique identifier for the chat session
+
+#### Response
+```json
+{
+  "sessionId": "string",
+  "messages": [
+    {
+      "id": "string",
+      "sender": "string (user or bot)",
+      "content": "string",
+      "timestamp": "ISO 8601 datetime"
+    }
+  ]
+}
+```
+
+#### Error Responses
+- `404`: Session not found
+- `500`: Internal server error
+
+### POST /api/rag-chatbot/translate
+Translates content to the specified language
+
+#### Request
+```json
+{
+  "content": "string",
+  "targetLanguage": "string (e.g., ur, en)",
+  "sourceLanguage": "string (optional, defaults to en)"
+}
+```
+
+#### Response
+```json
+{
+  "originalContent": "string",
+  "translatedContent": "string",
+  "targetLanguage": "string",
+  "status": "string (success or error)"
+}
+```
+
+#### Error Responses
+- `400`: Bad request (invalid language code)
+- `500`: Translation service error
+
+### GET /api/rag-chatbot/user/{userId}/progress
+Retrieves user progress in the textbook
+
+#### Path Parameters
+- `userId`: The unique identifier for the user
+
+#### Response
+```json
+{
+  "userId": "string",
+  "progress": [
+    {
+      "chapterId": "string",
+      "chapterTitle": "string",
+      "topics": [
+        {
+          "topicId": "string",
+          "topicTitle": "string",
+          "completed": "boolean",
+          "lastReadAt": "ISO 8601 datetime"
+        }
+      ],
+      "completionPercentage": "number"
+    }
+  ],
+  "overallCompletion": "number"
+}
+```
+
+#### Error Responses
+- `404`: User not found
+- `500`: Internal server error
+
+### PUT /api/rag-chatbot/user/{userId}/progress
+Updates user progress for a specific topic
+
+#### Path Parameters
+- `userId`: The unique identifier for the user
+- `topicId`: The topic ID to update progress for
+
+#### Request
+```json
+{
+  "completed": "boolean",
+  "timeSpent": "number (seconds)",
+  "notes": "string (optional)"
+}
+```
+
+#### Response
+```json
+{
+  "success": "boolean",
+  "message": "string"
+}
+```
+
+#### Error Responses
+- `400`: Invalid input
+- `404`: User or topic not found
+- `500`: Internal server error
